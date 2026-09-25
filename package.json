@@ -1,0 +1,10 @@
+{
+  "name": "taskio",
+  "private": true,
+  "workspaces": ["apps/api", "apps/web"],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "engines": { "node": ">=24 <25", "npm": ">=11 <13" }
+}

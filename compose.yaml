@@ -1,0 +1,50 @@
+name: taskio
+
+services:
+  db:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: taskio
+      POSTGRES_USER: taskio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env first}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskio -d taskio"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/api.Dockerfile
+    environment:
+      NODE_ENV: development
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:9090}
+      DATABASE_URL: postgres://taskio:${POSTGRES_PASSWORD:?Copy .env.example to .env first}@db:5432/taskio
+      API_PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/api/v1/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
