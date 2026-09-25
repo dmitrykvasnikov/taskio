@@ -137,17 +137,17 @@ The API is versioned under `/api/v1`. It exposes account/session, task, tag, dep
 
 The contract can be split by resource: `auth` (register, login, logout, current user), `tasks` (list, create, read, edit, delete, status), `tags` (list, create, rename), `dependencies` (add, remove, graph, status-impact preview), `task-comments` (list, add), `taskbuddies` (search, invite, list, accept, decline, cancel), `assignments/shares` (request, accept, decline, grant, list, revoke), `messages` (send, inbox, outbox, read), and `notifications` (list, acknowledge). Invalid input returns field-specific errors; a duplicate or invalid transition returns a conflict; unauthenticated requests return an authentication error; inaccessible records do not reveal their contents. The client supplies a unique operation ID for retryable mutations; the API stores the result so a network retry cannot create duplicate invitations, assignments, shares, dependency links, comments, or messages.
 
-Configuration comes from environment variables or deployment secrets and is documented without committing credentials. Local development uses localhost and sample values. The server deployment must not rely on editing application files on the host. A health endpoint checks API readiness and database connectivity. Logs include request correlation and operational errors without credentials or private message bodies.
+Configuration comes from environment variables or deployment secrets and is documented without committing credentials. Local development serves the browser app at `http://localhost:9090` with sample values. The server deployment must not rely on editing application files on the host. A health endpoint checks API readiness and database connectivity. Logs include request correlation and operational errors without credentials or private message bodies.
 
 ### Deployment and operations
 
-- The local workflow documents prerequisites, installation, database migration, app start, tests, and production build.
-- A server bootstrap guide covers a non-root operator, SSH key access, Docker Engine/Compose installation, firewall, and persistent storage. The first release is publicly reachable at the operator's domain over HTTPS. A Caddy reverse proxy is the implementation choice for certificate issuance/renewal, HTTP-to-HTTPS redirection, static frontend delivery, and `/api/v1` routing. Only ports 80 and 443 are public for the app; the API and database are on private Compose networks. DNS must point the domain to the server before certificate issuance. The operator supplies the actual domain and SSH details during deployment.
+- The local workflow documents prerequisites, installation, database migration, app start, tests, and production build. The browser app is reachable at `http://localhost:9090`.
+- A server bootstrap guide covers a non-root operator, SSH key access, Docker Engine/Compose installation, firewall, and persistent storage. The application serves the frontend and routes `/api/v1` on port 9090 in both environments. On the server, the app's port 9090 binds only to loopback, and Caddy listens on public port 80 and reverse proxies requests to `127.0.0.1:9090`. The API and database are on private Compose networks; port 9090 is not public. DNS must point the operator's domain to the server. The operator supplies the actual domain and SSH details during deployment.
 - A local deployment script builds or packages the release, transfers only required artifacts over SSH, runs migrations safely, starts/recreates services, checks health, and reports failure. Its target host and paths are configuration, never hardcoded secrets. Remote Git access is not required.
 - PostgreSQL data persists outside ephemeral containers. The operations guide defines scheduled backups, retention, off-server copy, and a tested restore procedure. Backup and restore are part of release acceptance, not just future documentation.
 - The deployment guide includes how to roll back application images, how to handle a non-reversible migration, and how to inspect logs and health. Exact server credentials, hostname, and domain are provided by the operator when deployment is authorized.
 
-Sources for the selected stack and operations: [Docker Compose production](https://docs.docker.com/compose/how-tos/production/), [PostgreSQL backup](https://www.postgresql.org/docs/18/backup-dump.html), [Fastify validation](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/), [Caddy automatic HTTPS](https://caddyserver.com/docs/automatic-https/).
+Sources for the selected stack and operations: [Docker Compose production](https://docs.docker.com/compose/how-tos/production/), [PostgreSQL backup](https://www.postgresql.org/docs/18/backup-dump.html), [Fastify validation](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/), [Caddy reverse proxy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy).
 
 ## 9. Quality and release gates
 
@@ -168,7 +168,7 @@ Sources for the selected stack and operations: [Docker Compose production](https
 | D5 | Assignee permissions | **Decided:** accepted assignee changes status and adds comments; owner edits task fields and access. |
 | D6 | Messaging | **Decided:** private one-to-one inbox/outbox messages, with separate system notifications. |
 | D7 | Account policy | **Decided:** open signup and syntactically valid but unverified email; no email delivery or self-service recovery in the first release. |
-| D8 | Public deployment | **Decided:** public HTTPS at the operator's domain is part of the first release. |
+| D8 | Public deployment | **Decided:** the app serves on port 9090 locally and on the server; the server exposes port 80 through a reverse proxy to its loopback-bound port 9090. |
 | D9 | Live updates | **Decided:** refresh/polling is sufficient; live push is outside the first release. |
 | D10 | Task comments | **Decided:** owner and accepted assignee may post flat comments, shown oldest first; no replies to comments. |
 
@@ -180,7 +180,7 @@ Each row is a small, reviewable behavior with an observable result. The IDs show
 
 | ID | Slice | Observable acceptance result |
 | --- | --- | --- |
-| S01 | Local stack and health | One documented command starts frontend, API, and PostgreSQL; health reports database readiness. |
+| S01 | Local stack and health | One documented command starts frontend, API, and PostgreSQL; the app opens at `http://localhost:9090`, and health reports database readiness. |
 | S02 | Account registration | A valid email/nickname/password creates one user; invalid or duplicate values are rejected. |
 | S03 | Login and session | A user signs in, reloads, remains signed in until expiry, and can sign out. |
 | S04 | Profile | A signed-in user changes nickname/password; another user cannot edit the profile. |
@@ -203,7 +203,7 @@ Each row is a small, reviewable behavior with an observable result. The IDs show
 | S21 | Private messages | Sender outbox and recipient inbox agree; a third user cannot fetch a message by ID. |
 | S22 | Task comments | Owner and accepted assignee post; viewers only read; comments paginate oldest first with no reply action or unauthorized access. |
 | S23 | Refresh behavior | Visible lists refresh on focus and the 30-second poll without duplicate rows or sends. |
-| S24 | Production packaging | A Compose production build serves the app and API through HTTPS at a configured domain, with private database/API ports. |
+| S24 | Production packaging | A Compose production build serves the app and API on loopback-bound port 9090; Caddy proxies public port 80 at a configured domain to that listener, with private database/API ports. |
 | S25 | Server bootstrap and deploy | Documented SSH deployment migrates, starts, checks health, and reports failure without using a Git remote. |
 | S26 | Backup and restore | A scheduled backup has retention and an off-server copy; a restore drill reproduces account/task/comment/message data. |
 | S27 | Release verification | Typecheck, lint, tests, build, seven user journeys, and operational checks pass from a clean checkout. |
