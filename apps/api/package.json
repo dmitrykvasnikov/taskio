@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
+    "@taskio/contracts": "0.1.0",
     "fastify": "5.12.5",
     "pg": "8.16.3"
   },

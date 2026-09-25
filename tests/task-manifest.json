@@ -1,0 +1,9 @@
+{
+  "T01": {
+    "ops": ["tests/ops/T01.sh"]
+  },
+  "T02": {
+    "api": ["tests/api/T02.test.ts"],
+    "ops": ["tests/ops/T02.sh"]
+  }
+}

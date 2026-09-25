@@ -1,0 +1,99 @@
+name: taskio-test
+
+services:
+  db:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: taskio_test
+      POSTGRES_USER: taskio
+      POSTGRES_PASSWORD: test_admin
+      MIGRATOR_PASSWORD: test_migrator
+      APP_DB_PASSWORD: test_app
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskio -d taskio_test"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  migrate:
+    build:
+      context: .
+      dockerfile: infra/api.Dockerfile
+    environment:
+      DATABASE_URL: postgres://taskio_migrator:test_migrator@db:5432/taskio_test
+    command: ["npm", "run", "migrate", "--workspace", "apps/api"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/api.Dockerfile
+    environment:
+      NODE_ENV: development
+      APP_ORIGIN: http://web:9090
+      DATABASE_URL: postgres://taskio_app:test_app@db:5432/taskio_test
+      API_PORT: 3000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/api/v1/health"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  tools:
+    build:
+      context: .
+      dockerfile: infra/tools.Dockerfile
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - tool_node_modules:/workspace/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TASKIO_BASE_URL: http://web:9090
+      TASKIO_COMPOSE_FILE: /workspace/compose.test.yaml
+      TASKIO_DATABASE_NAME: taskio_test
+      TASKIO_EXPECT_PUBLISHED_WEB: "0"
+      TEST_ADMIN_DATABASE_URL: postgres://taskio:test_admin@db:5432/taskio_test
+      TEST_MIGRATION_DATABASE_URL: postgres://taskio_migrator:test_migrator@db:5432/taskio_test
+      TEST_DATABASE_URL: postgres://taskio_app:test_app@db:5432/taskio_test
+    depends_on:
+      db:
+        condition: service_healthy
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.63.0-noble
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - tool_node_modules:/workspace/node_modules
+    environment:
+      PLAYWRIGHT_BASE_URL: http://web:9090
+    depends_on:
+      web:
+        condition: service_healthy
+    profiles: ["e2e"]
+
+volumes:
+  test_postgres_data:
+  tool_node_modules:

@@ -1,6 +1,7 @@
 import { createApp } from './app';
 import { loadConfig } from './config';
 import { createPool } from './db/pool';
+import { createDb } from './db/transaction';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -8,7 +9,7 @@ async function main(): Promise<void> {
   db.on('error', () => {
     console.error('An idle database connection was lost');
   });
-  const app = await createApp({ db, config, clock: { now: () => new Date() } });
+  const app = await createApp({ db: createDb(db), config, clock: { now: () => new Date() } });
   let closing = false;
 
   async function close(): Promise<void> {
