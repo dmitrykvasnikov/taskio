@@ -29,6 +29,17 @@ docker compose config --quiet
 make down                 # stop containers, preserve PostgreSQL data
 ```
 
+For frontend-only Vite development, install the Node dependencies and run:
+
+```sh
+npm ci
+npm run dev --workspace apps/web
+```
+
+Vite serves the browser app at [http://localhost:9090](http://localhost:9090). Stop
+the Compose stack first if it is already using that port. This mode serves only
+the frontend; use `make up` for the API and database-backed health endpoint.
+
 To install and check the current source on the host:
 
 ```sh
