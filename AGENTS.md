@@ -10,7 +10,9 @@ These rules apply to the entire Taskio repository.
 ## Project context
 
 - Read `docs/project-brief.md` before starting a task. It defines the product scope, architecture, and acceptance criteria.
-- For implementation tasks, consult the relevant task in `docs/superpowers/plans/2026-09-25-taskio-implementation.md` and check its prerequisites.
+- For implementation tasks, read `docs/development.md` and the selected `docs/tasks/Txx.md` file, then check its prerequisites and evidence in `docs/implementation-progress.md` (created by T01).
+- `docs/superpowers/plans/2026-09-25-taskio-implementation.md` is a navigation index. Do not load the whole backlog for a single task.
+- When asked to use `tasker`, delegate the selected task-file path to the project agent defined in `.codex/agents/tasker.toml`, using fresh context when supported. It reads the common rules itself and completes only that task. If custom-role selection is unavailable, pass that file's instructions explicitly to the subagent.
 - Keep each task focused on its agreed scope and observable acceptance criteria.
 
 ## Autonomy and confirmations
