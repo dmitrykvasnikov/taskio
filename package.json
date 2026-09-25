@@ -1,28 +1,25 @@
 {
-  "name": "taskio",
-  "private": true,
-  "type": "module",
-  "workspaces": [
-    "apps/api",
-    "apps/web",
-    "packages/contracts"
-  ],
-  "scripts": {
-    "build": "npm run build --workspace packages/contracts && npm run build --workspace apps/api && npm run build --workspace apps/web",
-    "typecheck": "npm run build --workspace packages/contracts && npm run typecheck --workspace apps/api && npm run typecheck --workspace apps/web",
-    "lint": "eslint .",
-    "test": "vitest run"
-  },
-  "engines": {
-    "node": ">=24 <25",
-    "npm": ">=11 <13"
-  },
-  "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "@playwright/test": "1.63.0",
-    "eslint": "10.11.0",
-    "tsx": "4.23.15",
-    "typescript-eslint": "8.70.1",
-    "vitest": "5.0.2"
-  }
+	"name": "taskio",
+	"private": true,
+	"type": "module",
+	"workspaces": ["apps/api", "apps/web", "packages/contracts"],
+	"scripts": {
+		"build": "npm run build --workspace packages/contracts && npm run build --workspace apps/api && npm run build --workspace apps/web",
+		"show": "npm run dev --workspace apps/web",
+		"typecheck": "npm run build --workspace packages/contracts && npm run typecheck --workspace apps/api && npm run typecheck --workspace apps/web",
+		"lint": "eslint .",
+		"test": "vitest run"
+	},
+	"engines": {
+		"node": ">=24 <25",
+		"npm": ">=11 <13"
+	},
+	"devDependencies": {
+		"@eslint/js": "10.0.1",
+		"@playwright/test": "1.63.0",
+		"eslint": "10.11.0",
+		"tsx": "4.23.15",
+		"typescript-eslint": "8.70.1",
+		"vitest": "5.0.2"
+	}
 }

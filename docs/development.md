@@ -1,6 +1,8 @@
 # Taskio development rules and shared contracts
 
-> Read this file with `AGENTS.md`, `docs/project-brief.md`, and one selected `docs/tasks/Txx.md` file. Use `superpowers:executing-plans` when available for that task. Do not automatically start the next task. Checkboxes track execution; completion requires recorded verification evidence.
+> This file is the canonical source for Taskio's shared technical contracts.
+> `AGENTS.md` owns repository workflow, and each `docs/tasks/Txx.md` owns its
+> task-specific scope and acceptance criteria.
 
 **Goal:** Build the first Taskio release as small, independently verifiable sessions, beginning with the local stack and account access.
 
@@ -18,7 +20,7 @@ All application paths in these contracts and task files are proposed, not discov
 
 ## Global constraints
 
-- “Git work and commits stay local; no Git remote operation is part of this project.” Do not fetch, pull, push, create a PR, or deploy by remote Git checkout.
+- Follow the Git workflow in `AGENTS.md`. Production deployment transfers release artifacts over SSH; it never uses a remote Git checkout.
 - “The API is versioned under `/api/v1`.” The frontend never connects directly to PostgreSQL.
 - Local browser origin is `http://localhost:9090`; production application binding is `127.0.0.1:9090`. Database and API container ports are private.
 - Email: trim, syntactically valid, maximum 254 characters, unique case-insensitively. Nickname: 3–32 trimmed characters, unique case-insensitively. Internal user ID is immutable.
@@ -46,6 +48,10 @@ All application paths in these contracts and task files are proposed, not discov
 
 ## Session protocol
 
+Follow `AGENTS.md` for interaction, authorization, branch/worktree handling,
+local-only Git, commits, merging, and README maintenance. Agent definitions
+should reference that workflow rather than reproduce it.
+
 Use this request in a new Codex session, replacing the task path:
 
 > Use the tasker subagent to implement docs/tasks/T01.md.
@@ -54,14 +60,14 @@ The project-scoped agent is defined in [`.codex/agents/tasker.toml`](../.codex/a
 
 Each task is one session-sized deliverable, not a promise that every task takes equal time. Dependencies mean prerequisite code and its tests pass, not just that its checkbox was checked. Suggested order is T01 through T32; each task file lists its direct prerequisites. The [index](superpowers/plans/2026-09-25-taskio-implementation.md) permits independent later branches of work without requiring parallel agents. T16 follows T15 so numbered migrations stay monotonic; do not apply a higher-numbered migration before its earlier planned migrations exist.
 
-For every task:
+For every selected task, add these Taskio-specific steps to the repository
+workflow:
 
-1. Read `AGENTS.md`, the brief, this file, the supplied task, and relevant prerequisite evidence. Do not read the entire backlog. Inspect Git status, branch, and local `master` without any remote operation. Missing prerequisite implementation is a blocker to the selected task, not permission to implement additional tasks.
-2. Create a separate `codex-` branch from current local `master`, using an isolated worktree if necessary to preserve unrelated work. Follow `AGENTS.md` for English interaction, routine autonomy, and architectural-change confirmation. Mandatory platform permissions still apply.
-3. Write the named positive, invalid-input, and permission/regression tests; run the task command and observe the intended failure. For infrastructure, use a failing smoke assertion/config check instead of artificial unit tests.
-4. Implement only the selected behavior and its UI, migration, and docs. Keep `README.md` current as required by `AGENTS.md`; T01 introduces it with the working stack. Re-run targeted checks, then `make check` once it exists. Correct any failure before calling the task complete.
-5. Update `docs/implementation-progress.md` with task ID, changed contract decisions, exact commands, results, and remaining operator inputs. Create that file with the first implementation task; its absence before T01 is expected. Never record “passed” for a command not run. Update verified task checkboxes and any shared/dependent contracts changed by the implementation.
-6. Commit only task-owned files and evidence locally using explicit paths and the task's commit message. Follow `AGENTS.md` to delegate the scoped commit and local merge to a fresh-context Luna agent when available, otherwise perform them directly. Merge into local `master` after checks pass; prefer fast-forward and never rewrite history or overwrite unrelated work. Verify containment, report final branch/worktree state and checks, and stop after the selected task. No fetch, pull, push, or remote PR.
+1. Use `superpowers:executing-plans` when available, then verify the task's direct prerequisites in source, tests, and the relevant `docs/implementation-progress.md` entries. Missing or failing prerequisite implementation is a blocker, not permission to expand the task.
+2. Write the named positive, invalid-input, and permission/regression tests; run the task command and observe the intended failure. For infrastructure, use a failing smoke assertion/config check instead of artificial unit tests.
+3. Implement only the selected behavior and its required UI, migration, contracts, and documentation. Re-run targeted checks, then `make check` once it exists; correct failures before completion.
+4. Update `docs/implementation-progress.md` with the task ID, changed contract decisions, exact commands and results, and remaining operator inputs. T01 creates the file. Never record an unrun command as passing. Update verified task checkboxes and affected shared contracts.
+5. Stop after the selected task; do not automatically start its successor.
 
 ## File ownership and shared interfaces
 

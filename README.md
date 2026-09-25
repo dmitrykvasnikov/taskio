@@ -41,12 +41,13 @@ For frontend-only Vite development, install the Node dependencies and run:
 
 ```sh
 npm ci
-npm run dev --workspace apps/web
+npm run show
 ```
 
-Vite serves the browser app at [http://localhost:9090](http://localhost:9090). Stop
-the Compose stack first if it is already using that port. This mode serves only
-the frontend; use `make up` for the API and database-backed health endpoint.
+The root `show` script runs the web workspace's Vite development server. Vite
+serves the browser app at [http://localhost:9090](http://localhost:9090). Stop the
+Compose stack first if it is already using that port. This mode serves only the
+frontend; use `make up` for the API and database-backed health endpoint.
 
 The primary verification commands use disposable Compose projects and dedicated databases. They do not reuse the development volume:
 

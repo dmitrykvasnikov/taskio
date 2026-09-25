@@ -2,6 +2,9 @@
 
 These rules apply to the entire Taskio repository.
 
+This file is the canonical source for repository workflow rules. Agent definitions
+and development guides should reference these rules instead of repeating them.
+
 ## Language
 
 - Use English for all interaction with the user and other agents, including questions, progress updates, and final reports.
@@ -12,7 +15,7 @@ These rules apply to the entire Taskio repository.
 - Read `docs/project-brief.md` before starting a task. It defines the product scope, architecture, and acceptance criteria.
 - For implementation tasks, read `docs/development.md` and the selected `docs/tasks/Txx.md` file, then check its prerequisites and evidence in `docs/implementation-progress.md` (created by T01).
 - `docs/superpowers/plans/2026-09-25-taskio-implementation.md` is a navigation index. Do not load the whole backlog for a single task.
-- When asked to use `tasker`, delegate the selected task-file path to the project agent defined in `.codex/agents/tasker.toml`, using fresh context when supported. It reads the common rules itself and completes only that task. If custom-role selection is unavailable, pass that file's instructions explicitly to the subagent.
+- When asked to use `tasker`, delegate the selected task-file path to the project agent defined in `.codex/agents/tasker.toml`, using fresh context when supported. The agent follows this file and completes only that task. If custom-role selection is unavailable, pass that file's instructions explicitly to the subagent.
 - Keep each task focused on its agreed scope and observable acceptance criteria.
 
 ## Autonomy and confirmations
